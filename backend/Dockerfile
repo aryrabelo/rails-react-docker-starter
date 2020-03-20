@@ -7,14 +7,12 @@ COPY Gemfile.lock /myapp/backend/Gemfile.lock
 RUN bundle install
 COPY . /myapp/backend
 
-ENV ENTRYKIT_VERSION 0.4.0
-RUN wget https://github.com/progrium/entrykit/releases/download/v${ENTRYKIT_VERSION}/entrykit_${ENTRYKIT_VERSION}_Linux_x86_64.tgz \
-  && tar -xvzf entrykit_${ENTRYKIT_VERSION}_Linux_x86_64.tgz \
-  && rm entrykit_${ENTRYKIT_VERSION}_Linux_x86_64.tgz \
-  && mv entrykit /bin/entrykit \
-  && chmod +x /bin/entrykit \
-  && entrykit --symlink
+# Add a script to be executed every time the container starts.
+COPY entrypoint.sh /usr/bin/
+RUN chmod +x /usr/bin/entrypoint.sh
+ENTRYPOINT ["entrypoint.sh"]
+EXPOSE 3000
 
-ENTRYPOINT [ \
-  "prehook", "ruby -v", "--", \
-  "prehook", "/myapp/backend/prehook", "--"]
+# Start the main process.
+CMD ["ruby", "-v"]
+CMD ["rails", "server", "-b", "0.0.0.0"]
